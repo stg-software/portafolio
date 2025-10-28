@@ -4,8 +4,11 @@
       <v-row align="center" justify="center" class="text-center">
         <v-col cols="12" md="10" lg="8">
           <!-- Avatar/Image (opcional) -->
-          <v-avatar size="150" class="mb-6 elevation-8">
-            <v-icon size="100" color="primary">mdi-account-circle</v-icon>
+          <v-avatar size="180" class="mb-6 elevation-8">
+            <v-img
+              :width="'100%'"
+              :src="favicon"
+            ></v-img>
           </v-avatar>
 
           <!-- Título Principal -->
@@ -63,7 +66,7 @@
               variant="tonal"
               color="secondary"
               prepend-icon="mdi-download"
-              href="#"
+              @click="scrollToSection('contact')"
             >
               {{ $t('hero.buttons.download') }}
             </v-btn>
@@ -75,7 +78,7 @@
               icon
               variant="text"
               size="large"
-              href="https://github.com/yourusername"
+              href="https://github.com/stg-software"
               target="_blank"
             >
               <v-icon>mdi-github</v-icon>
@@ -85,7 +88,7 @@
               icon
               variant="text"
               size="large"
-              href="https://linkedin.com/in/yourusername"
+              href="https://www.linkedin.com/in/stgmx/"
               target="_blank"
             >
               <v-icon>mdi-linkedin</v-icon>
@@ -122,6 +125,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import favicon from '../assets/images/favicon.png'
 
 const { t } = useI18n()
 

@@ -17,35 +17,24 @@
           <v-card class="pa-6">
             <v-card-title class="text-h5 mb-4">{{ $t('contact.form.title') }}</v-card-title>
             
-            <!-- FormSubmit Form -->
-            <form action="https://formsubmit.co/stg.contacto@gmail.com" method="POST">
-              <!-- FormSubmit Configuration -->
-              <input type="hidden" name="_captcha" value="false">
-              <input type="hidden" name="_next" value="/?success=true">
-              <input type="hidden" name="_subject" value="Nuevo mensaje desde el portafolio">
-              <input type="hidden" name="_template" value="table">
-              
+            <v-form ref="form" v-model="valid" @submit.prevent="sendEmail">
               <v-text-field
-                v-model="formData.name"
+                v-model="formData.from_name"
                 :label="$t('contact.form.name') + ' *'"
                 :rules="[rules.required]"
                 variant="outlined"
                 prepend-inner-icon="mdi-account"
                 class="mb-2"
-                name="name"
-                required
               ></v-text-field>
 
               <v-text-field
-                v-model="formData.email"
+                v-model="formData.from_email"
                 :label="$t('contact.form.email') + ' *'"
                 :rules="[rules.required, rules.email]"
                 variant="outlined"
                 prepend-inner-icon="mdi-email"
                 type="email"
                 class="mb-2"
-                name="email"
-                required
               ></v-text-field>
 
               <v-text-field
@@ -55,8 +44,6 @@
                 variant="outlined"
                 prepend-inner-icon="mdi-text"
                 class="mb-2"
-                name="subject"
-                required
               ></v-text-field>
 
               <v-textarea
@@ -67,8 +54,6 @@
                 prepend-inner-icon="mdi-message-text"
                 rows="5"
                 class="mb-2"
-                name="message"
-                required
               ></v-textarea>
 
               <v-btn
@@ -76,21 +61,23 @@
                 color="primary"
                 size="large"
                 block
+                :loading="loading"
+                :disabled="!valid"
               >
                 <v-icon start>mdi-send</v-icon>
-                {{ $t('contact.form.send') }}
+                {{ loading ? $t('contact.form.sending') : $t('contact.form.send') }}
               </v-btn>
-            </form>
+            </v-form>
 
-            <!-- Success Alert (mostrar si hay parámetro ?success=true en URL) -->
+            <!-- Status Messages -->
             <v-alert
-              v-if="showSuccessAlert"
-              type="success"
+              v-if="alertMessage"
+              :type="alertType"
               class="mt-4"
               closable
-              @click:close="showSuccessAlert = false"
+              @click:close="alertMessage = ''"
             >
-              {{ $t('contact.alerts.success') }}
+              {{ alertMessage }}
             </v-alert>
           </v-card>
         </v-col>
@@ -132,7 +119,7 @@
                 size="large"
                 variant="tonal"
                 color="primary"
-                href="https://github.com/yourusername"
+                href="https://github.com/stg-software"
                 target="_blank"
               >
                 <v-icon>mdi-github</v-icon>
@@ -143,7 +130,7 @@
                 size="large"
                 variant="tonal"
                 color="primary"
-                href="https://linkedin.com/in/yourusername"
+                href="https://www.linkedin.com/in/stgmx/"
                 target="_blank"
               >
                 <v-icon>mdi-linkedin</v-icon>
@@ -161,7 +148,7 @@
               color="primary"
               class="mb-2"
               prepend-icon="mdi-download"
-              href="#"
+              href="https://www.dropbox.com/scl/fi/nee1r0q8pue967kd8orqb/CV_IA.pdf?rlkey=9wxjd39ge4vfxe6adpyk9n1mx&st=7bouyfn2&dl=0"
             >
               {{ $t('contact.cv.developer') }}
             </v-btn>
@@ -172,7 +159,7 @@
               color="secondary"
               class="mb-2"
               prepend-icon="mdi-download"
-              href="#"
+              href="https://www.dropbox.com/scl/fi/w786tgpfqgan4ez77j99g/CV_IFS_Santiago_Torres_SRM.pdf?rlkey=c430xfclu6vpa6bk3iz7wx9ed&st=q5rye3fu&dl=0"
             >
               {{ $t('contact.cv.field') }}
             </v-btn>
@@ -182,7 +169,7 @@
               variant="tonal"
               color="accent"
               prepend-icon="mdi-download"
-              href="#"
+              href="https://www.dropbox.com/scl/fi/z1woy5mzymximl3fc64f0/CV_Maestro.pdf?rlkey=7zdka8dxspnm6z7mkkgfvfeif&st=hmiv9pno&dl=0"
             >
               {{ $t('contact.cv.teacher') }}
             </v-btn>
@@ -206,16 +193,26 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import emailjs from '@emailjs/browser'
 
 const { t } = useI18n()
 
-const showSuccessAlert = ref(false)
+// ⬇️ CONFIGURA ESTOS VALORES CON LOS TUYOS DE EMAILJS
+const EMAILJS_SERVICE_ID = 'service_fvyuej6'
+const EMAILJS_TEMPLATE_ID = 'template_kkwb9l2'
+const EMAILJS_PUBLIC_KEY = 'cuaK0Qp9izeYvr1Fy'
+
+const form = ref(null)
+const valid = ref(false)
+const loading = ref(false)
+const alertMessage = ref('')
+const alertType = ref('success')
 
 const formData = ref({
-  name: '',
-  email: '',
+  from_name: '',
+  from_email: '',
   subject: '',
   message: ''
 })
@@ -228,17 +225,39 @@ const rules = computed(() => ({
   }
 }))
 
-onMounted(() => {
-  // Detectar si hay parámetro ?success=true en URL
-  const urlParams = new URLSearchParams(window.location.search)
-  if (urlParams.get('success') === 'true') {
-    showSuccessAlert.value = true
-    // Limpiar URL después de 3 segundos
-    setTimeout(() => {
-      window.history.replaceState({}, document.title, window.location.pathname)
-    }, 3000)
+const sendEmail = async () => {
+  if (!valid.value) return
+
+  loading.value = true
+  alertMessage.value = ''
+
+  try {
+    await emailjs.send(
+      EMAILJS_SERVICE_ID,
+      EMAILJS_TEMPLATE_ID,
+      formData.value,
+      EMAILJS_PUBLIC_KEY
+    )
+
+    alertType.value = 'success'
+    alertMessage.value = t('contact.alerts.success')
+
+    // Limpiar formulario
+    formData.value = {
+      from_name: '',
+      from_email: '',
+      subject: '',
+      message: ''
+    }
+    form.value.reset()
+  } catch (error) {
+    console.error('EmailJS Error:', error)
+    alertType.value = 'error'
+    alertMessage.value = t('contact.alerts.error')
+  } finally {
+    loading.value = false
   }
-})
+}
 </script>
 
 <style scoped>

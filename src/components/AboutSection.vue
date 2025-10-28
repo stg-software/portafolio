@@ -10,16 +10,19 @@
 
       <v-row>
         <v-col cols="12" md="4" class="d-flex align-center justify-center">
-          <v-avatar size="280" class="elevation-8">
-            <v-icon size="200" color="primary">mdi-account-circle</v-icon>
+          <v-avatar size="300" class="mb-6 elevation-8">
+            <v-img 
+              :src="foto"
+              width="100%">
+            </v-img>
           </v-avatar>
         </v-col>
 
         <v-col cols="12" md="8">
           <v-card flat class="pa-6">
-            <h3 class="text-h5 font-weight-bold mb-4 text-primary">
+            <!-- <h3 class="text-h5 font-weight-bold mb-4 text-primary">
               {{ $t('about.subtitle') }}
-            </h3>
+            </h3> -->
 
             <div class="text-body-1 text-justify about-text">
               <p class="mb-4">{{ $t('about.paragraphs.intro') }}</p>
@@ -54,6 +57,8 @@
 </template>
 
 <script setup>
+  import foto from '../assets/images/Santiago_T.png'
+
 // No necesita lógica adicional por ahora
 </script>
 
