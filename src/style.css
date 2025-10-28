@@ -1,0 +1,73 @@
+/* src/style.css */
+
+/* Reset y configuración base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scroll personalizado */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2563EB;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1d4ed8;
+}
+
+/* Dark mode scrollbar */
+.v-theme--dark ::-webkit-scrollbar-track {
+  background: #1E293B;
+}
+
+.v-theme--dark ::-webkit-scrollbar-thumb {
+  background: #3B82F6;
+}
+
+/* Animaciones suaves */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Utilidades */
+.section-spacing {
+  padding: 80px 0;
+}
+
+@media (max-width: 960px) {
+  .section-spacing {
+    padding: 60px 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .section-spacing {
+    padding: 40px 0;
+  }
+}
